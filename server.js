@@ -2,6 +2,7 @@ const express    = require('express');
 const app        = express();
 const bodyParser = require('body-parser');
 const cors	   	= require('cors');
+   // pour l'instant pas besoin de cors()
 const fs 		= require("fs");
 
 
@@ -21,7 +22,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
    .use(bodyParser.json())
    .use(cors());
 
-
+// essaye de tjrs declarer tes variabkles en haut du fichier
 const port = process.env.PORT || 5000;
 
 app.listen(port);
