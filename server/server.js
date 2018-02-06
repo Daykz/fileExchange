@@ -1,9 +1,12 @@
 const express    = require('express');
 const app        = express();
 const bodyParser = require('body-parser');
-
-
-// const api		= require('./api');
+const multer       = require('multer');
+const storage	= multer.diskStorage({
+	destination: (req, file, cb) => cb(null, 'serverFile/'),
+	filename: (req, file, cb) => cb(null, file.originalname),
+})
+const upload		= multer({storage});
 
 const port 		= process.env.PORT || 5000;
 
@@ -13,9 +16,9 @@ const api = () => {
 	sousapp.get('/download', (req, res, next) => {
 				res.send('You have download the file');
 			})
-			.post('upload', (req, res, next) => {
-				console.log('res: ', res);
-				res.send('You have upload the file');		
+			.post('/upload', upload.single('file'), (req, res, next) => {
+				console.log(req.file);
+				res.send('You have upload the file');	
 			});
 	return sousapp;
 }

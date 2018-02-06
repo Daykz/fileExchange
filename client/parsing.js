@@ -1,5 +1,4 @@
 const parsing = (params) => {
-	console.log(params);
 	if (params.length == 5)
 		if (params[params.length - 1] == 'upload')
 			return 1;
