@@ -14,6 +14,10 @@ const port 		= process.env.PORT || 5000;
 const api = () => {
   const sousapp        = express();
 	sousapp.get('/download', (req, res, next) => {
+				// habitue toi à toujours envoyé des status avec tes reponse:
+				//		res.status(200).send('Everythings ok.');
+				//		res.status(500).send('Server internal error.')
+				//		res.status(404).send('Not found.')
 				res.send('You have download the file');
 			})
 			.post('/upload', upload.single('file'), (req, res, next) => {
