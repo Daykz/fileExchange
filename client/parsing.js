@@ -5,6 +5,7 @@ const parsing = (params) => {
 	else
 	{
 		console.log('Parse failed.\nUsage: "node myScript.js src=<path> dest=<path> op=<upload||download>"');
+		// toujours exit() avec un int .. 1 ou 0 en fonction de erreur ou success
 		process.exit();
 	}
 }
