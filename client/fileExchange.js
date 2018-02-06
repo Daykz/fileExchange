@@ -1,11 +1,18 @@
 const fs 		= require("fs");
-const parsing	= require('./parsing');
+const parseArgv	= require('./parsing');
 const request	= require('./request');
 const { upload, download } = require('./request');
 
-const argv = process.argv;
+const object = {};
+const argv = process.argv.forEach((value, key) => {
+	const params = value.split('=');
 
-if (parsing(argv) == 1)
-	upload(argv[2], argv[3]);
-else if (parsing(argv) == 2)
-	download(argv[2], argv[3]);
+	object[params[0]] = params[1];
+	return ;
+});
+
+parseArgv(object);
+
+(object.op == 'upload') ? upload(object) : download(object);
+
+console.log('\n', object);

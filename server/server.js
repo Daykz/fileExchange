@@ -3,7 +3,7 @@ const app        = express();
 const bodyParser = require('body-parser');
 const multer       = require('multer');
 const storage	= multer.diskStorage({
-	destination: (req, file, cb) => cb(null, 'serverFile/'),
+	destination: (req, file, cb) => cb(null, req.body.path),
 	filename: (req, file, cb) => cb(null, file.originalname),
 })
 const upload		= multer({storage});
@@ -18,7 +18,7 @@ const api = () => {
 			})
 			.post('/upload', upload.single('file'), (req, res, next) => {
 				console.log(req.file);
-				res.send('You have upload the file');	
+				res.send('You have upload the file');
 			});
 	return sousapp;
 }
