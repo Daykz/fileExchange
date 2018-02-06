@@ -1,4 +1,5 @@
 const parsing = (params) => {
+	//	({ src, dest, op })
 	if (params.src && params.dest 
 		&& params.op && (params.op == 'upload' || params.op == 'download'))
 		return ;
