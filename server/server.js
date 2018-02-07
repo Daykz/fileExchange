@@ -2,6 +2,7 @@ const express    = require('express');
 const app        = express();
 const bodyParser = require('body-parser');
 const multer       = require('multer');
+const fs 		= require('fs');
 const storage	= multer.diskStorage({
 	destination: (req, file, cb) => cb(null, req.body.path),
 	filename: (req, file, cb) => cb(null, file.originalname),
@@ -14,7 +15,15 @@ const port 		= process.env.PORT || 5000;
 const api = () => {
   const sousapp        = express();
 	sousapp.get('/download', (req, res, next) => {
-				res.send('You have download the file');
+				console.log('path : ', req.query.path);
+				fs.access(req.query.path, fs.constants.R_OK, err => {
+					if (err)
+					{
+					  console.log('erroor');
+					  exit(1);
+					}
+				});
+				res.sendFile(req.query.path);
 			})
 			.post('/upload', upload.single('file'), (req, res, next) => {
 				console.log(req.file);

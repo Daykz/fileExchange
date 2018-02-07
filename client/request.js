@@ -16,11 +16,19 @@ const upload = ({src, dest}) => {
 		}
 	};
 	rp(options)
-	.then(res => console.log('success'))
+	.then(res => console.log(res))
 	.catch(err => console.log('err: ', err));
 }
 
-const download = (src, dest) => {
+const download = ({src, dest}) => {
+	console.log('src = ', src, 'dest = ', dest);
+	rp.get('http://127.0.0.1:5000/download', {
+		qs: {
+			path: src
+		}
+	})
+	.then(res => console.log(res))
+	.catch(err => console.log('errr'));
 }
 
 module.exports = { upload, download }

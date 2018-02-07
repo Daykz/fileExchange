@@ -14,5 +14,3 @@ const argv = process.argv.forEach((value, key) => {
 parseArgv(object);
 
 (object.op == 'upload') ? upload(object) : download(object);
-
-console.log('\n', object);
