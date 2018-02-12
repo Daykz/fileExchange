@@ -1,6 +1,5 @@
 const fs 		= require("fs");
 const parseArgv	= require('./parsing');
-const request	= require('./request');
 const { upload, download } = require('./request');
 
 const object = {};
