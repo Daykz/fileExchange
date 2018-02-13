@@ -1,0 +1,33 @@
+ex:
+  new params: 'id'
+  new option: 
+    '-m || --meta',
+    '-c || --compress'
+  
+  
+  node bin.js src=... dest=... op=upload -m id=wd_temp
+  node bin.js src=... dest=... op=upload --meta id=wd_temp*
+  node bin.js src=... dest=... op=upload -c id=wd_temp
+  node bin.js src=... dest=... op=upload --compress id=wd_temp
+  node bin.js src=... dest=... op=upload -m id=wd_temp -compress
+  node bin.js src=... dest=... op=upload --meta id=wd_temp -c
+  
+l'option --meta te demande de créer un fichier de métadonées en relation avec le fichier de base que tu Upload.
+exemples de métadonées:
+  - nom de fichier
+  - checksum du fichier
+  - compress (true or false)
+  - size
+  - source (path)
+  - destination (path)
+  - date (au format AAAAMMJJ-HH:MM:SS)
+  
+l'option --compress te demande de réunir les 2 fichiers que tu envoies (fichier de base + fichier de méta) OU simplement
+le fichier de base Et d'en faire un .zip, pour envoyé le ou les fichiers en ZIP (plus léger, plus rapide a envoyé !!!)
+
+PAR CONTRE
+
+le coté récéption doit lui UNZIP l'archive qui arrive et ensuite ranger le ou les fichiers dans les bons répertoires.
+(voir le fichier de conf coté récéption)
+
+  
