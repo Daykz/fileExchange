@@ -1,5 +1,6 @@
 const fs 		= require("fs");
-const parseArgv	= require('./parsing');
+const parsing	= require('./parsing');
+const path = require('path');
 const { upload, download } = require('./request');
 
 const object = {};
@@ -10,6 +11,11 @@ const argv = process.argv.forEach((value, key) => {
 	return ;
 });
 
-parseArgv(object);
+parsing(object).then(() => {
+	if (object.op == 'upload')
+	 upload(object).then(console.log).catch(console.log);
+	else
+		download(object).then(console.log).catch(console.log);
+})
+.catch(console.log());
 
-(object.op == 'upload') ? upload(object) : download(object);

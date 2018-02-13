@@ -3,8 +3,7 @@ const request = require('request');
 const fs 	  = require("fs");
 const path = require('path');
 
-// promise ????????????????????????????????????
-const upload = ({src, dest}) => {
+const upload = ({src, dest}) => new Promise((resolve, reject) => {
 	const options = {
 		method: 'POST',
 		uri: 'http://127.0.0.1:5000/upload',
@@ -19,25 +18,22 @@ const upload = ({src, dest}) => {
 		}
 	};
 	rp(options)
-	.then(res => console.log(res))
-	.catch(err => console.log('err: ', err));
-}
+	.then(res => resolve(res))
+	.catch(err => reject(err));
+});
 
-// promise ????????????????????????????????????
-const download = ({src, dest}) => {
+const download = ({src, dest}) => new Promise((resolve, reject) => {
 	request.get('http://127.0.0.1:5000/download', {
 		qs: {
 			path: src
 		}
 	}, (err, res, body) => {
-		if (res.statusCode == 403)
-		 console.log(body);
-		else {
-			console.log('You have download the file.');
-			process.exit(1);
-		}
+		if (err || res.statusCode == 403)
+			reject("You can't download the file.");
+		else
+			resolve('You have download the file.');
 	})
 	.pipe(fs.createWriteStream(path.resolve(dest)));
-}
+});
 
 module.exports = { upload, download }

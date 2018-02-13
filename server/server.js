@@ -31,15 +31,6 @@ const api = () => {
 			});
 	return sousapp;
 }
-// const inputTxt = process.argv[2];
-// const outputTxt = process.argv[3];
-
-// const readerStream = fs.createReadStream(inputTxt);
-// const writerStream = fs.createWriteStream(outputTxt);
-// console.log(inputTxt, outputTxt);
-
-
-// readerStream.pipe(writerStream);
 
 
 

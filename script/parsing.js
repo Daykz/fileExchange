@@ -1,24 +1,21 @@
 const fs = require('fs');
 
-// promise ????????????????????????????????????
-const checkDirAccessW = (path) => {
-	fs.access(path, fs.constants.W_OK, err => {
-		if (err) {
-			console.log(`You can't access this directory.`);
-			process.exit(1);
-		}
-	});
-};
 
-// promise ????????????????????????????????????
-const checkFileAccessR = (path) => {
-	fs.access(path, fs.constants.R_OK | fs.constants.F_OK, err => {
-		if (err) {
-			console.log(`You can't access this file.`);
-			process.exit(1);
-		}
+const checkDirAccessW = (path) => new Promise((resolve, reject) => {
+	fs.access(path, fs.constants.W_OK, err => {
+		if (err)
+			reject(`You can't access this directory.`);
 	});
-};
+	resolve();
+});
+
+const checkFileAccessR = (path) => new Promise((resolve, reject) => {
+	fs.access(path, fs.constants.R_OK | fs.constants.F_OK, err => {
+		if (err)
+			reject(`You can't access this file.`);
+	});
+	resolve();
+});
 
 const getDir = (path) => {
 	const pos = path.lastIndexOf('/');
@@ -27,25 +24,18 @@ const getDir = (path) => {
 	return dir;
 }
 
-// promise ????????????????????????????????????
-const parsePath = (src, dest, op) => {
+const parsePath = (src, dest, op) => new Promise((resolve, reject) => {
 	if (op == 'download')
-		checkDirAccessW(getDir(dest));
+		checkDirAccessW(getDir(dest)).then(resolve()).catch(console.log);
 	else if (op == 'upload')
-		checkFileAccessR(src);
-};
-
-// promise ????????????????????????????????????
-const parsing = ({src, dest, op}) => {
-	if (src && dest  
-		&& op && (op == 'upload' || op == 'download'))
-		parsePath(src, dest, op) ;
+		checkFileAccessR(src).then(resolve()).catch(console.log);
 	else
-	{
-		console.log('Parse failed.\nUsage: "node myScript.js src=<file-path> dest=<directory-path/> name=<file-name> op=<upload||download>"');
-		process.exit(1);
-	}
-};
+		reject('Parse failed.\nUsage: "node myScript.js src=<path> dest=<path> op=<upload||download>"');
+});
+
+const parsing = ({src, dest, op}) => new Promise((resolve, reject) => {
+		parsePath(src, dest, op).then(resolve()).catch(err => reject(err));
+});
 
 
 module.exports = parsing;
