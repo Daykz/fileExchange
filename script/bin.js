@@ -9,9 +9,13 @@ const object = {};
 // du coup ton argv commence directement au niveau de tes arguments
 
 const argv = process.argv.forEach((value, key) => {
+     // const object = {}
+	
 	const params = value.split('=');
-
+     // const [ key, value ] = split();
+	
 	object[params[0]] = params[1];
+     // object[key] = value;
 	return ;
 });
 
@@ -22,4 +26,4 @@ parsing(object).then(() => {
 		download(object).then(console.log).catch(console.log);
 })
 .catch(console.log());
-
+// console.error() pour le catch ! 
