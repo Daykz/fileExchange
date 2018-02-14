@@ -1,0 +1,16 @@
+----------------------------406694275738247317867878
+Content-Disposition: form-data; name="id"
+
+wd_temp
+----------------------------406694275738247317867878
+Content-Disposition: form-data; name="dest"
+
+salut.jpg
+----------------------------406694275738247317867878
+Content-Disposition: form-data; name="options"
+
+m,c
+----------------------------406694275738247317867878
+Content-Disposition: form-data; name="file"; filename="clientFile.txt"
+Content-Type: text/plain
+

@@ -1,6 +1,6 @@
-const WD_T = 'work_directory/temp/';
-const WD_U = 'work_directory/unknow/';
-const WD_NE = 'work_directory/notExist/';
+const WD_T = 'work_directory/temp';
+const WD_U = 'work_directory/unknow';
+const WD_NE = 'work_directory/notExist';
 
 const conf = (id) => {
   return ({
@@ -20,6 +20,7 @@ const conf = (id) => {
   })[id]
 }
 
+module.exports = conf;
 /*
 
   id (wd_temp || wd_unknow || ...) === id envoyé en params a l'envoie de fichier.

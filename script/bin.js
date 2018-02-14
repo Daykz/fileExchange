@@ -3,17 +3,23 @@ const parsing	= require('./parsing');
 const path = require('path');
 const { upload, download } = require('./request');
 
-const object = {};
 
-// const argv = process.argv.slice(2) --> tu slice() les 2 premières valeurs [ 'node', 'bin.js' ]
-// du coup ton argv commence directement au niveau de tes arguments
+let options = '';
+const meta = ['--meta', '-m'];
+const compress = ['--compress', '-c'];
+	const object = {};
 
-const argv = process.argv.forEach((value, key) => {
-     // const object = {}
+const argv = process.argv.slice(2).forEach((value, key) => {
+ 
 	
 	const params = value.split('=');
      // const [ key, value ] = split();
 	
+	if (meta.indexOf(value) !== -1)
+		options = (options) ? options.concat(',m') : options.concat('m');
+	else if (compress.indexOf(value) !== -1)
+		options = (options) ? options.concat(',c') : options.concat('c');
+
 	object[params[0]] = params[1];
      // object[key] = value;
 	return ;
@@ -21,9 +27,9 @@ const argv = process.argv.forEach((value, key) => {
 
 parsing(object).then(() => {
 	if (object.op == 'upload')
-	 upload(object).then(console.log).catch(console.log);
+	  upload(object, options).then(console.log).catch(console.log);
 	else
 		download(object).then(console.log).catch(console.log);
 })
-.catch(console.log());
-// console.error() pour le catch ! 
+.catch(console.error);
+

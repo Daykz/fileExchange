@@ -3,23 +3,16 @@ const request = require('request');
 const fs 	  = require("fs");
 const path = require('path');
 
-const upload = ({src, dest}) => new Promise((resolve, reject) => {
-	const options = {
-		method: 'POST',
-		uri: 'http://127.0.0.1:5000/upload',
-		formData: {
-			path: dest,
-			filename: '',
-			file: {
-				value: fs.createReadStream(src),
-				options: {
-				}
-			}
-		}
+const upload = ({src, dest, id}, options) => new Promise((resolve, reject) => {
+
+	const formData= {
+		id: id,
+		dest: dest,
+		options: options,
+		file: fs.createReadStream(src),
 	};
-	rp(options)
-	.then(res => resolve(res))
-	.catch(err => reject(err));
+
+	request.post({url:'http://127.0.0.1:5000/upload', formData: formData});
 });
 
 const download = ({src, dest}) => new Promise((resolve, reject) => {

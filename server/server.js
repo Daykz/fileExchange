@@ -2,13 +2,8 @@ const express    = require('express');
 const app        = express();
 const bodyParser = require('body-parser');
 const path = require('path');
-const multer       = require('multer');
 const fs 		= require('fs');
-const storage	= multer.diskStorage({
-	destination: (req, file, cb) => cb(null, req.body.path),
-	filename: (req, file, cb) => cb(null, req.body.filename),
-})
-const upload		= multer({storage});
+const conf = require('./conf');
 
 const port 		= process.env.PORT || 5000;
 
@@ -16,7 +11,7 @@ const port 		= process.env.PORT || 5000;
 const api = () => {
   const sousapp = express();
 	sousapp.get('/download', (req, res, next) => {
-				fs.access(req.query.path, fs.constants.R_OK, err => {
+				fs.access(req.query.path, fs.constants.R_OK | fs.constants.F_OK, err => {
 					if (err)
 					{
 					  console.log('Someone try to access to this file: ' + req.query.path);
@@ -26,8 +21,10 @@ const api = () => {
 						res.download(path.resolve(req.query.path));
 				});
 			})
-			.post('/upload', upload.single('file'), (req, res, next) => {
-				res.send('You have upload the file');
+			.post('/upload', (req, res, next) => {
+				console.log(req.file);
+				req.pipe(fs.createWriteStream('./test.txt'));
+				res.send();
 			});
 	return sousapp;
 }
