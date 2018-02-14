@@ -5,6 +5,9 @@ const checkDirAccessW = (path) => new Promise((resolve, reject) => {
 	fs.access(path, fs.constants.W_OK, err => {
 		if (err)
 			reject(`You can't access this directory.`);
+		// else {} --> pas obliger !
+		// if (err) reject(err || custom err)
+		//     resolve()
 		else
 			resolve();
 	});
@@ -22,6 +25,7 @@ const checkFileAccessR = (path) => new Promise((resolve, reject) => {
 const getDir = (path) => {
 	const pos = path.lastIndexOf('/');
 	const dir = (pos == -1) ? './' : path.slice(0, pos);
+	// path.slice(0, path.lastIndexOf('/'))
 	
 	return dir;
 }
