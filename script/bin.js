@@ -4,6 +4,10 @@ const path = require('path');
 const { upload, download } = require('./request');
 
 const object = {};
+
+// const argv = process.argv.slice(2) --> tu slice() les 2 premières valeurs [ 'node', 'bin.js' ]
+// du coup ton argv commence directement au niveau de tes arguments
+
 const argv = process.argv.forEach((value, key) => {
 	const params = value.split('=');
 
