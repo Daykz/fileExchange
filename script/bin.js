@@ -7,7 +7,7 @@ const { upload, download } = require('./request');
 let options = '';
 const meta = ['--meta', '-m'];
 const compress = ['--compress', '-c'];
-	const object = {};
+const object = {};
 
 const argv = process.argv.slice(2).forEach((value, key) => {
  

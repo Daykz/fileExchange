@@ -25,7 +25,6 @@ const checkFileAccessR = (path) => new Promise((resolve, reject) => {
 const getDir = (path) => {
 	const pos = path.lastIndexOf('/');
 	const dir = (pos == -1) ? './' : path.slice(0, pos);
-	// path.slice(0, path.lastIndexOf('/'))
 	
 	return dir;
 }
