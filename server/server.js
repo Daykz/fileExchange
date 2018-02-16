@@ -31,6 +31,7 @@ const api = () => {
 				});
 			})
 			.post('/upload', (req, res, next) => {
+				console.log(req.query, req.params, req.formData, req.file, req.body, req.files);
 				fs.access(path.resolve(conf(req.query.id).REP_DEST), err => {
 					if (err) {
 						mkdirp.sync(path.resolve(conf(req.query.id).REP_DEST), err => {
