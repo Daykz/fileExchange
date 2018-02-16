@@ -9,7 +9,10 @@ const mkdirp = require('mkdirp');
 const exec = require('child_process').exec;
 
 const storage	= multer.diskStorage({
-	destination: (req, file, cb) => cb(null, path.resolve(conf(req.query.id).REP_DEST)),
+	destination: (req, file, cb) => {
+		(req.body.src) ? cb(null, path.resolve(conf(req.query.id).REP_EVENT)) 
+																														: cb(null, path.resolve(conf(req.query.id).REP_DEST));
+	},
 	filename: (req, file, cb) => cb(null, req.body.filename),
 })
 const upload		= multer({storage: storage}).single('file');
@@ -41,15 +44,25 @@ const api = () => {
 								console.log("New directory created");
 						});
 					}
-					upload(req, res, function (err) {
-						if (err)
-							res.end('Error upload');
-						else {
-							if (req.query.id === 'wd_unknow')
-								exec(conf(req.query.id).EXEC);
-							res.end('You have upload the file');
-						}
-					})
+					fs.access(path.resolve(conf(req.query.id).REP_EVENT), err => {
+						if (err) {
+							mkdirp.sync(path.resolve(conf(req.query.id).REP_EVENT), err => {
+								if (err)
+									res.end("Can't create new directory")
+								else
+									console.log("New directory created");
+							});
+						}	
+						upload(req, res, function (err) {
+							if (err)
+								res.end('Error upload');
+							else {
+								if (req.query.id === 'wd_unknow')
+									exec(conf(req.query.id).EXEC);
+								res.end('You have upload the file');
+							}
+						})
+					});
 				});
 			});
 	return sousapp;

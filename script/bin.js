@@ -16,9 +16,8 @@ const argv = process.argv.slice(2).forEach((value, key) => {
 	if (params.indexOf(id) > -1) object[id] = val;
 	if (meta.indexOf(id) > -1) object['m'] = true;
 	if (compress.indexOf(id) > -1) object['c'] = true;
-	return ;
 });
-console.log(object);
+
 parsing(object).then(() => {
 	if (object.op == 'upload')
 	  upload(object).then(console.log).catch(console.log);

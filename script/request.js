@@ -2,22 +2,11 @@ const rp = require('request-promise');
 const request = require('request');
 const fs 	  = require("fs");
 const path = require('path');
+const mkdirp = require('mkdirp');
 
 const upload = (object) => new Promise((resolve, reject) => {
 
-	// const conf = {
-	// 	method: 'POST',
-	// 	uri: `http://127.0.0.1:5000/upload?id=${id}`,
-	// 	formData: {
-	// 		filename: dest,
-	// 		file: {
-	// 			value: fs.createReadStream(src),
-	// 			options: {
-	// 			}
-	// 		}
-	// 	}
-	// };
-	// request(conf, err => console.log(err));
+	const filesToUpload = [];
 
 	if (object.m) {
 		const stats = fs.statSync(object.src, (err, stats) => {
@@ -27,21 +16,37 @@ const upload = (object) => new Promise((resolve, reject) => {
 		const compress = (object.c) ? true : false;
 		const date = new Date().toLocaleString();
 		const metadata = `- name : ${object.dest}\n- compress : ${compress}\n- size : ${stats.size}\n- source : ${object.src}\n- date : ${date}`;
-		console.log(metadata);
+		mkdirp(`/tmp/metaTemp/`, err => {
+			if (err)
+				reject("Can't create directory metaTemp");
+			else {
+				fs.writeFileSync(`/tmp/metaTemp/${object.dest}`, metadata, err => {
+					if (err) reject("Can't create meta file")
+				})
+				const formData = {
+					filename: object.dest,
+					src: '/tmp/metaTemp/',
+					file: fs.createReadStream(`/tmp/metaTemp/${object.dest}`),
+				};
+				request.post({ url:`http://127.0.0.1:5000/upload?id=${object.id}`, formData: formData }, (err, http, body) => {
+					if (err) console.log(err);
+				});
+				console.log("New meta file created");
+			}
+		});
 	}
 
 
-	const formData = {
-		id: object.id,
-		filename: object.dest,
-		file: fs.createReadStream(object.src),
-	};
+		const formData = {
+			filename: object.dest,
+			file: fs.createReadStream(object.src),
+		};
 
-	request.post({ url:`http://127.0.0.1:5000/upload?id=${object.id}`, formData: formData }, (err, http, body) => {
-		if (err) console.log(err);
+		request.post({ url:`http://127.0.0.1:5000/upload?id=${object.id}`, formData: formData }, (err, http, body) => {
+			if (err) console.log(err);		
+		});
 
 		resolve("You have upload the file.");
-	});
 	
 });
 
