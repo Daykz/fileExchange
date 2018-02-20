@@ -20,9 +20,9 @@ const argv = process.argv.slice(2).forEach((value, key) => {
 
 parsing(object).then(() => {
 	if (object.op == 'upload')
-	  upload(object).then(console.log).catch(console.log);
+	  upload(object);
 	else
-		download(object).then(console.log).catch(console.log);
+		download(object).then(console.log).catch(console.error);
 })
 .catch(console.error);
 

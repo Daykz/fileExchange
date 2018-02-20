@@ -7,17 +7,38 @@ const fs 		= require('fs');
 let conf = require('./conf');
 const mkdirp = require('mkdirp');
 const exec = require('child_process').exec;
+const md5file = require('md5-file');
 
 const storage	= multer.diskStorage({
-	destination: (req, file, cb) => {
-		(req.body.src) ? cb(null, path.resolve(conf(req.query.id).REP_EVENT)) 
-																														: cb(null, path.resolve(conf(req.query.id).REP_DEST));
-	},
+	destination: (req, file, cb) => (req.body.src) ? cb(null, path.resolve(conf(req.query.id).REP_EVENT)) : cb(null, path.resolve(conf(req.query.id).REP_DEST)),
 	filename: (req, file, cb) => cb(null, req.body.filename),
-})
+});
 const upload		= multer({storage: storage}).single('file');
 
 const port 		= process.env.PORT || 5000;
+
+const createDir = (path) => new Promise((resolve, reject) => {
+	mkdirp(path, err => {
+		if (err) reject("Can't create new directory")
+		console.log('create dir');
+		resolve("New directory created");
+	})
+});
+
+const exists = (path) => new Promise((resolve, reject) => {
+	fs.access(path, err => {
+		if (err) resolve(false)
+		resolve(true);
+	})
+});
+
+
+const uploadFile = (req, res) => new Promise((resolve, reject) => {
+	upload(req, res, err => {
+		if (err) reject(err)
+		resolve();
+	})
+})
 
 
 const api = () => {
@@ -34,37 +55,41 @@ const api = () => {
 				});
 			})
 			.post('/upload', (req, res, next) => {
-				console.log(req.query, req.params, req.formData, req.file, req.body, req.files);
-				fs.access(path.resolve(conf(req.query.id).REP_DEST), err => {
-					if (err) {
-						mkdirp.sync(path.resolve(conf(req.query.id).REP_DEST), err => {
-							if (err)
-								res.end("Can't create new directory")
-							else
-								console.log("New directory created");
-						});
+				exists(path.resolve(conf(req.query.id).REP_DEST))
+				.then(err => {
+					if (!err) {
+						mkdirp.sync(conf(req.query.id).REP_DEST);
 					}
-					fs.access(path.resolve(conf(req.query.id).REP_EVENT), err => {
-						if (err) {
-							mkdirp.sync(path.resolve(conf(req.query.id).REP_EVENT), err => {
-								if (err)
-									res.end("Can't create new directory")
-								else
-									console.log("New directory created");
-							});
-						}	
-						upload(req, res, function (err) {
-							if (err)
-								res.end('Error upload');
-							else {
-								if (req.query.id === 'wd_unknow')
-									exec(conf(req.query.id).EXEC);
-								res.end('You have upload the file');
-							}
+					return exists(path.resolve(conf(req.query.id).REP_EVENT))
+				})
+				.then(err => {
+					if (!err) {
+						mkdirp.sync(conf(req.query.id).REP_EVENT)
+					}
+					console.log('upload bef');
+					return uploadFile(req, res);
+				})
+				.then(() => {
+					console.log('enter upload');
+					if (req.query.id === 'wd_unknow') exec(conf(req.query.id).EXEC)
+
+					const pathfile = conf(req.query.id).REP_DEST + '/' + req.body.filename;
+					const pathmeta = conf(req.query.id).REP_EVENT + '/' + req.body.filename;
+
+					if (req.query.value === 'meta') {
+						fs.readFile(pathmeta, (err, data) => {
+							const content = JSON.stringify(data.toString('utf8'));
+							const arrayMatch = content.match(/checksum: (\w*);/);
+							if (arrayMatch[1] !== md5file.sync(pathfile))
+								console.log('checksum is wrong.');
 						})
-					});
-				});
-			});
+					}
+					res.send('You have upload the file.')
+				})
+				.catch(err => {
+					res.send(err);
+				})
+			})
 	return sousapp;
 }
 
@@ -75,7 +100,4 @@ app.use(bodyParser.urlencoded({ extended: true }))
    .use('/', api());
 
 app.listen(port);
-console.log('Magic happens on port ' + port);
-
-
-
+console.log('Magic happens on port ' + port)
