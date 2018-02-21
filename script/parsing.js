@@ -4,7 +4,6 @@ const fs = require('fs');
 const checkDirAccessW = (path) => new Promise((resolve, reject) => {
 	fs.access(path, fs.constants.W_OK, err => {
 		if (err) reject(`You can't access this directory.`);
-		
 		resolve();
 	});
 });
@@ -12,7 +11,6 @@ const checkDirAccessW = (path) => new Promise((resolve, reject) => {
 const checkFileAccessR = (path) => new Promise((resolve, reject) => {
 	fs.access(path, fs.constants.R_OK | fs.constants.F_OK, err => {
 		if (err) reject(`You can't access this file.`);
-
 		resolve();
 	});
 });

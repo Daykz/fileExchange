@@ -5,17 +5,17 @@ const WD_NE = 'work_directory/notExist';
 const conf = (id) => {
   return ({
     'wd_temp':  {
-       REP_DEST: `/tmp/${WD_T}/files`,
-       REP_EVENT: `/tmp/${WD_T}/metas`,
+       REP_DEST: `/tmp/${WD_T}/files/`,
+       REP_EVENT: `/tmp/${WD_T}/metas/`,
     },
     'wd_unknow': {
-      REP_DEST: `/tmp/${WD_U}/files`,
-      REP_EVENT: `/tmp/${WD_U}/metas`,
+      REP_DEST: `/tmp/${WD_U}/files/`,
+      REP_EVENT: `/tmp/${WD_U}/metas/`,
       EXEC: `echo -n 'Dave tu commences a être chaud chacaaaal' > /tmp/${WD_U}/exec_test.txt`,
     },
     'wd_doesnt_exist': {
-      REP_DEST: `/tmp/${WD_NE}/files`,
-      REP_EVENT: `/tmp/${WD_NE}/metas`,
+      REP_DEST: `/tmp/${WD_NE}/files/`,
+      REP_EVENT: `/tmp/${WD_NE}/metas/`,
     }
   })[id]
 }

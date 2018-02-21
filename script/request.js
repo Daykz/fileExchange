@@ -3,7 +3,7 @@ const fs 	  = require("fs");
 const path = require('path');
 const mkdirp = require('mkdirp');
 const md5file = require('md5-file');
-const archiver = require('archiver');
+const archiver = require('archiver-promise');
 const Promise = require('bluebird');
 
 const checkIfMeta = ({ m }) => new Promise((resolve, reject) => {
@@ -16,9 +16,9 @@ const checkIfCompress = ({ c }) => new Promise((resolve, reject) => {
 	reject();
 });
 
-const unlinkFile = ({ dest }) => new Promise((resolve, reject) => {
-	fs.unlink(`/tmp/metaTemp/${dest}`, err => {
-		if (err) reject(`Can't delete /tmp/metaTemp/${dest}`)
+const unlinkFile = (path) => new Promise((resolve, reject) => {
+	fs.unlink(path, err => {
+		if (err) reject(`Can't delete ${path}`)
 		resolve();
 	})
 });
@@ -44,35 +44,33 @@ const createDir = metadata => new Promise((resolve, reject) => {
 	})
 });
 
-const rp = ({ id }, value, formData) => new Promise((resolve, reject) => {
-	request.post({ url:`http://127.0.0.1:5000/upload?id=${id}&value=${value}`, formData: formData }, (err, http, body) => {
+const rp = ({ id }, formData) => new Promise((resolve, reject) => {
+	request.post({ url:`http://127.0.0.1:5000/upload?id=${id}`, formData: formData }, (err, http, body) => {
 		console.log('request');
 		if (err) reject(err)
 		resolve();
 	});
 });
 
-const createZip = (newZip) => new Promise((resolve, reject) => {
+const absolutePath = (path) => path.match(/(\w*).{1,}/)[1];
+
+const createZip = (object, newZip) => new Promise((resolve, reject) => {
 
 		const output = fs.createWriteStream(newZip);
-		const archive = archiver('zip', {
+		const archive = archiver(newZip, {
 		  zlib: { level: 9 }
 		});
+		console.log(object.src);
 		archive.append(fs.createReadStream(object.src), { name: object.dest });
 		if (object.m)
-			archive.append(fs.createReadStream(`/tmp/metaTemp/${object.dest}`), { name: 'meta' + object.dest });
+			archive.append(fs.createReadStream(`/tmp/metaTemp/${absolutePath(object.dest)}.txt`), { name: 'meta-' + absolutePath(object.dest) + '.txt' });
 		archive.pipe(output);
-		archive.on('finish', err => {
-				console.log('finish');
-		});
-		archive.finalize();
-		resolve();
+		archive.finalize().then(() => resolve()).catch(err => reject(err));
 });
 
 const upload = (object) => {
 
-	const filesToUpload = [];
-	const newZip = (object.c) ? object.dest.match(/(\w*).{1,}/)[1] + '.zip' : false;
+	const newZip = (object.c) ? absolutePath(object.dest) + '.zip' : false;
 
 	checkIfMeta(object)
 	.then(() => getStat(object.src))
@@ -80,11 +78,11 @@ const upload = (object) => {
 		const compress = (object.c) ? true : false;
 		const date = new Date().toLocaleString();
 		const checksum = md5file.sync(object.src);
-		const metadata = `-name: ${object.dest};\n-checksum: ${checksum};\n-compress: ${compress};\n-size: ${stats.size};\n-source: ${object.src};\n-date : ${date}`;
+		const metadata = `-name: ${object.dest}.txt;\n-checksum: ${checksum};\n-compress: ${compress};\n-size: ${stats.size};\n-source: ${object.src};\n-date : ${date}`;
 		console.log('then meta')
 		return createDir(metadata);
 	})
-	.then(metadata => writeFile(object.dest, metadata))
+	.then(metadata => writeFile(absolutePath(object.dest) + '.txt', metadata))
 	.catch(err => {
 		if (err) console.error(err)
 	})
@@ -94,7 +92,7 @@ const upload = (object) => {
 	})
 	.then(() => {
 			console.log('compress then');
-			return createZip(newZip)
+			return createZip(object, newZip)
 	})
 	.catch(() => {
 		console.log('catch compress ');
@@ -103,54 +101,24 @@ const upload = (object) => {
 			const formData = {
 					filename: object.dest,
 					src: '/tmp/metaTemp/',
-					file: fs.createReadStream(`/tmp/metaTemp/${object.dest}`),
+					file: fs.createReadStream(`/tmp/metaTemp/${absolutePath(object.dest)}.txt`),
 			};
-			rp(object, 'meta', formData);
+			rp(object, formData);
 		}
 	})
 	.finally(() => {
-		console.log('final');
-		const formData = {
-			filename: (object.c) ? newZip : object.dest,
-			file: (object.c) ? fs.createReadStream(newZip) : fs.createReadStream(object.src),
-		};
-		console.log(formData);
-		rp(object, 'file', formData).then(() => console.log('You have upload the file.')).catch(err => console.log('errrrrrr'));
-		if (object.m) unlinkFile(object)
+			console.log('final');
+			const formData = {
+				filename: (object.c) ? newZip : absolutePath(object.dest) + '.txt',
+				originalname: absolutePath(object.dest) + '.txt',
+				meta: (object.m) ? 'true' : '',
+				file: (object.c) ? fs.createReadStream(newZip) : fs.createReadStream(object.src),
+			};
+			rp(object, formData).then(() => console.log('You have upload the file.')).catch(err => console.log('errrrrrr'));
+			if (object.m) unlinkFile(`/tmp/metaTemp/${absolutePath(object.dest)}.txt`)
+			unlinkFile(newZip);
 	})
 };
-
-
-
-
-
-		// const stats = fs.statSync(object.src, (err, stats) => {
-		// 	if (err)
-		// 		console.log("Can't get stat on this file");
-		// })
-		
-		// mkdirp(`/tmp/metaTemp/`, err => {
-		// 	if (err) reject("Can't create directory metaTemp")
-		// 	else {
-		// 		fs.writeFileSync(`/tmp/metaTemp/${object.dest}`, metadata, err => {
-		// 			if (err) reject("Can't create meta file")
-		// 		})
-		// 		const formData = {
-		// 			filename: object.dest,
-		// 			src: '/tmp/metaTemp/',
-		// 			file: fs.createReadStream(`/tmp/metaTemp/${object.dest}`),
-		// 		};
-		// 		request.post({ url:`http://127.0.0.1:5000/upload?id=${object.id}&value=meta`, formData: formData }, (err, http, body) => {
-		// 			if (err) console.log(err);
-		// 			else {
-		// 				fs.unlinkSync(`/tmp/metaTemp/${object.dest}`, err => {
-		// 					if (err) reject(`Can't delete /tmp/metaTemp/${object.dest}`)
-		// 				})
-		// 			}
-		// 		});
-		// 		console.log("You have upload the meta file");
-		// 	}
-		// });
 
 const download = ({ src, dest }) => new Promise((resolve, reject) => {
 	request.get('http://127.0.0.1:5000/download', {

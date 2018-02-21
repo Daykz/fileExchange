@@ -8,12 +8,16 @@ let conf = require('./conf');
 const mkdirp = require('mkdirp');
 const exec = require('child_process').exec;
 const md5file = require('md5-file');
+const decompress = require('decompress');
+const mv = require('mv');
+
 
 const storage	= multer.diskStorage({
-	destination: (req, file, cb) => (req.body.src) ? cb(null, path.resolve(conf(req.query.id).REP_EVENT)) : cb(null, path.resolve(conf(req.query.id).REP_DEST)),
+	destination: (req, file, cb) => (req.body.src) ? cb(null, conf(req.query.id).REP_EVENT) : cb(null, conf(req.query.id).REP_DEST),
 	filename: (req, file, cb) => cb(null, req.body.filename),
 });
-const upload		= multer({storage: storage}).single('file');
+
+const upload		= multer({storage: storage}).any('file');
 
 const port 		= process.env.PORT || 5000;
 
@@ -38,7 +42,14 @@ const uploadFile = (req, res) => new Promise((resolve, reject) => {
 		if (err) reject(err)
 		resolve();
 	})
-})
+});
+
+const unlinkFile = (path) => new Promise((resolve, reject) => {
+	fs.unlink(path, err => {
+		if (err) reject(`Can't delete ${path}`)
+		resolve();
+	})
+});
 
 
 const api = () => {
@@ -71,19 +82,22 @@ const api = () => {
 				})
 				.then(() => {
 					console.log('enter upload');
+
+					decompress(conf(req.query.id).REP_DEST + req.body.filename, conf(req.query.id).REP_DEST)
+					.then(files => {
+						console.log('decompress success');
+						unlinkFile(conf(req.query.id).REP_DEST + req.body.filename).catch(console.error);
+						if (req.body.meta)
+							mv(conf(req.query.id).REP_DEST + 'meta-' + req.body.originalname, conf(req.query.id).REP_EVENT + 'meta-' + req.body.originalname, err => {
+						if (err) console.log(err);
+						})
+					});
+					
 					if (req.query.id === 'wd_unknow') exec(conf(req.query.id).EXEC)
 
 					const pathfile = conf(req.query.id).REP_DEST + '/' + req.body.filename;
 					const pathmeta = conf(req.query.id).REP_EVENT + '/' + req.body.filename;
 
-					if (req.query.value === 'meta') {
-						fs.readFile(pathmeta, (err, data) => {
-							const content = JSON.stringify(data.toString('utf8'));
-							const arrayMatch = content.match(/checksum: (\w*);/);
-							if (arrayMatch[1] !== md5file.sync(pathfile))
-								console.log('checksum is wrong.');
-						})
-					}
 					res.send('You have upload the file.')
 				})
 				.catch(err => {
