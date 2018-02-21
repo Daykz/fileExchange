@@ -15,6 +15,9 @@ const checkFileAccessR = (path) => new Promise((resolve, reject) => {
 	});
 });
 
+
+// plus simple
+// getDir = path => path.lastIndexOf('/') < 0 ? './' : path.slice(0, path.lastIndexOf('/'));
 const getDir = (path) => {
 	const pos = path.lastIndexOf('/');
 	const dir = (pos == -1) ? './' : path.slice(0, pos);
@@ -31,8 +34,9 @@ const parsePath = (src, dest, op) => new Promise((resolve, reject) => {
 		reject('Parse failed.\nUsage: "node myScript.js src=<path> dest=<path> op=<upload||download>"');
 });
 
-const parsing = ({src, dest, op}) => new Promise((resolve, reject) => {
+const parsing = ({ src, dest, op }) => new Promise((resolve, reject) => {
 		parsePath(src, dest, op).then(res => resolve()).catch(err => reject(err));
+	// parsePath(src, dest, op).then(res => resolve()).catch(reject);
 });
 
 
