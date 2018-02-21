@@ -6,11 +6,13 @@ const md5file = require('md5-file');
 const archiver = require('archiver-promise');
 const Promise = require('bluebird');
 
+// c'est pas très parlant ...
 const checkIfMeta = ({ m }) => new Promise((resolve, reject) => {
 	if (m) resolve();
 	reject();
 });
 
+// la non plus
 const checkIfCompress = ({ c }) => new Promise((resolve, reject) => {
 	if (c) resolve();
 	reject();
@@ -23,6 +25,7 @@ const unlinkFile = (path) => new Promise((resolve, reject) => {
 	})
 });
 
+// `/tmp/metaTemp/${path}` ? path c'est un filename ?
 const writeFile = (path, file) => new Promise((resolve, reject) => {
 	fs.writeFile(`/tmp/metaTemp/${path}`, file, err => {
 		if (err) reject("Can't create meta file")
@@ -55,7 +58,7 @@ const rp = ({ id }, formData) => new Promise((resolve, reject) => {
 const absolutePath = (path) => path.match(/(\w*).{1,}/)[1];
 
 const createZip = (object, newZip) => new Promise((resolve, reject) => {
-
+		 // ({ src, dest }, newZip) 
 		const output = fs.createWriteStream(newZip);
 		const archive = archiver(newZip, {
 		  zlib: { level: 9 }
