@@ -1,0 +1,16 @@
+{
+  "name": "fileExchange",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/Daykz/fileExchange.git",
+  "license": "MIT",
+  "dependencies": {
+    "archiver-promise": "^1.0.0",
+    "bluebird": "^3.5.1",
+    "md5-file": "^3.2.3",
+    "mkdirp": "^0.5.1",
+    "nodemon": "^1.15.1",
+    "path": "^0.12.7",
+    "request": "^2.83.0"
+  }
+}

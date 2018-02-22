@@ -1,6 +1,0 @@
--name: 4.txt.txt;
--checksum: 441d403229f2792e17d9ffbc9dcaf8c3;
--compress: false;
--size: 374;
--source: clientFile/clientFile.txt;
--date : 2018-2-21 16:32:40

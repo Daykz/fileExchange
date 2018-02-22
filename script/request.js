@@ -46,7 +46,7 @@ const createDir = (dirname, metadata) => new Promise((resolve, reject) => {
 });
 
 const rp = ({ id }, formData) => new Promise((resolve, reject) => {
-	request.post({ url:`http://127.0.0.1:5000/upload?id=${id}`, formData: formData }, (err, http, body) => {
+	request.post({ url:`http://localhost:5000/upload?id=${id}`, formData: formData }, (err, http, body) => {
 		console.log('request');
 		if (err) reject(err)
 		resolve();
