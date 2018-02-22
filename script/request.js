@@ -6,14 +6,13 @@ const md5file = require('md5-file');
 const archiver = require('archiver-promise');
 const Promise = require('bluebird');
 
-// c'est pas très parlant ...
-const checkIfMeta = ({ m }) => new Promise((resolve, reject) => {
+
+const checkIfMetaOptionExist = ({ m }) => new Promise((resolve, reject) => {
 	if (m) resolve();
 	reject();
 });
 
-// la non plus
-const checkIfCompress = ({ c }) => new Promise((resolve, reject) => {
+const checkIfCompressOptionExist = ({ c }) => new Promise((resolve, reject) => {
 	if (c) resolve();
 	reject();
 });
@@ -25,9 +24,8 @@ const unlinkFile = (path) => new Promise((resolve, reject) => {
 	})
 });
 
-// `/tmp/metaTemp/${path}` ? path c'est un filename ?
 const writeFile = (path, file) => new Promise((resolve, reject) => {
-	fs.writeFile(`/tmp/metaTemp/${path}`, file, err => {
+	fs.writeFile(path, file, err => {
 		if (err) reject("Can't create meta file")
 		resolve();
 	})
@@ -40,9 +38,9 @@ const getStat = (path) => new Promise((resolve, reject) => {
 	})
 });
 
-const createDir = metadata => new Promise((resolve, reject) => {
-	mkdirp('/tmp/metaTemp/', err => {
-		if (err) reject("Can't create directory metaTemp")
+const createDir = (dirname, metadata) => new Promise((resolve, reject) => {
+	mkdirp(dirname, err => {
+		if (err) reject(`Can't create directory ${dirname}`)
 		resolve(metadata);
 	})
 });
@@ -57,45 +55,57 @@ const rp = ({ id }, formData) => new Promise((resolve, reject) => {
 
 const absolutePath = (path) => path.match(/(\w*).{1,}/)[1];
 
-const createZip = (object, newZip) => new Promise((resolve, reject) => {
-		 // ({ src, dest }, newZip) 
+const createZip = ({ src, dest, m }, newZip) => new Promise((resolve, reject) => {
 		const output = fs.createWriteStream(newZip);
 		const archive = archiver(newZip, {
 		  zlib: { level: 9 }
 		});
-		console.log(object.src);
-		archive.append(fs.createReadStream(object.src), { name: object.dest });
-		if (object.m)
-			archive.append(fs.createReadStream(`/tmp/metaTemp/${absolutePath(object.dest)}.txt`), { name: 'meta-' + absolutePath(object.dest) + '.txt' });
+		console.log(src);
+		archive.append(fs.createReadStream(src), { name: dest });
+		if (m)
+			archive.append(fs.createReadStream(`/tmp/metaTemp/${absolutePath(dest)}.js`), { name: 'meta-' + absolutePath(dest) + '.js' });
 		archive.pipe(output);
-		archive.finalize().then(() => resolve()).catch(err => reject(err));
+		archive.finalize().then(() => resolve('archive finalize')).catch(reject);
 });
 
 const upload = (object) => {
 
 	const newZip = (object.c) ? absolutePath(object.dest) + '.zip' : false;
 
-	checkIfMeta(object)
+	checkIfMetaOptionExist(object)
 	.then(() => getStat(object.src))
 	.then(stats => {
 		const compress = (object.c) ? true : false;
 		const date = new Date().toLocaleString();
 		const checksum = md5file.sync(object.src);
-		const metadata = `-name: ${object.dest}.txt;\n-checksum: ${checksum};\n-compress: ${compress};\n-size: ${stats.size};\n-source: ${object.src};\n-date : ${date}`;
-		console.log('then meta')
-		return createDir(metadata);
+		const metadata = `const metadata = {\n\tname: '${object.dest}',\n\tchecksum: '${checksum}',\n\tcompress: '${compress}',\n\tsize: '${stats.size}',\n\tsource: '${object.src}',\n\tdate : '${date}'\n}\n\nmodule.exports = metadata;`;
+		console.log('then meta');
+		return createDir('/tmp/metaTemp/', metadata);
 	})
-	.then(metadata => writeFile(absolutePath(object.dest) + '.txt', metadata))
+	.then(metadata => writeFile(`/tmp/metaTemp/${absolutePath(object.dest)}.js`, metadata))
 	.catch(err => {
 		if (err) console.error(err)
 	})
 	.finally(() => {
 		console.log('finally meta')
-		return checkIfCompress(object)
+		return checkIfCompressOptionExist(object)
 	})
 	.then(() => {
 			console.log('compress then');
-			return createZip(object, newZip)
+			createZip(object, newZip).then(result => {
+				console.log(result);
+				const formData = {
+					filename: (object.c) ? newZip : object.dest,
+					absolutename: absolutePath(object.dest),
+					meta: (object.m) ? 'true' : '',
+					file: (object.c) ? fs.createReadStream(newZip) : fs.createReadStream(object.src),
+				};
+				rp(object, formData).then(() => {
+					console.log('You have upload the file.')
+					if (object.m) unlinkFile(`/tmp/metaTemp/${absolutePath(object.dest)}.js`)
+					// if (newZip) unlinkFile(newZip)
+				})
+			})
 	})
 	.catch(() => {
 		console.log('catch compress ');
@@ -104,22 +114,27 @@ const upload = (object) => {
 			const formData = {
 					filename: object.dest,
 					src: '/tmp/metaTemp/',
-					file: fs.createReadStream(`/tmp/metaTemp/${absolutePath(object.dest)}.txt`),
+					file: fs.createReadStream(`/tmp/metaTemp/${absolutePath(object.dest)}.js`),
 			};
 			rp(object, formData);
 		}
 	})
 	.finally(() => {
-			console.log('final');
-			const formData = {
-				filename: (object.c) ? newZip : absolutePath(object.dest) + '.txt',
-				originalname: absolutePath(object.dest) + '.txt',
-				meta: (object.m) ? 'true' : '',
-				file: (object.c) ? fs.createReadStream(newZip) : fs.createReadStream(object.src),
-			};
-			rp(object, formData).then(() => console.log('You have upload the file.')).catch(err => console.log('errrrrrr'));
-			if (object.m) unlinkFile(`/tmp/metaTemp/${absolutePath(object.dest)}.txt`)
-			unlinkFile(newZip);
+			if (!object.c) {
+				console.log('final');
+				const formData = {
+					filename: (object.c) ? newZip : object.dest,
+					absolutename: absolutePath(object.dest),
+					meta: (object.m) ? 'true' : '',
+					file: (object.c) ? fs.createReadStream(newZip) : fs.createReadStream(object.src),
+				};
+				rp(object, formData).then(() => {
+					console.log('You have upload the file.')
+					if (object.m) unlinkFile(`/tmp/metaTemp/${absolutePath(object.dest)}.js`)
+					// if (newZip) unlinkFile(newZip)
+				})
+				.catch(err => console.log('errrrrrr'));
+			}
 	})
 };
 
@@ -129,10 +144,8 @@ const download = ({ src, dest }) => new Promise((resolve, reject) => {
 			path: src
 		}
 	}, (err, res, body) => {
-		if (err || res.statusCode == 403)
-			reject("You can't download the file.");
-		else
-			resolve('You have download the file.');
+		if (err || res.statusCode == 403) reject("You can't download the file.");
+		else resolve('You have download the file.');
 	})
 	.pipe(fs.createWriteStream(path.resolve(dest)));
 });

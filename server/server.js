@@ -82,17 +82,17 @@ const api = () => {
 				})
 				.then(() => {
 					console.log('enter upload');
-
-					decompress(conf(req.query.id).REP_DEST + req.body.filename, conf(req.query.id).REP_DEST)
-					.then(files => {
-						console.log('decompress success');
-						unlinkFile(conf(req.query.id).REP_DEST + req.body.filename).catch(console.error);
-						if (req.body.meta)
-							mv(conf(req.query.id).REP_DEST + 'meta-' + req.body.originalname, conf(req.query.id).REP_EVENT + 'meta-' + req.body.originalname, err => {
-						if (err) console.log(err);
-						})
-					});
-					
+					if (req.body.filename.match('.zip')) {
+						decompress(conf(req.query.id).REP_DEST + req.body.filename, conf(req.query.id).REP_DEST)
+						.then(files => {
+							console.log('decompress success');
+							unlinkFile(conf(req.query.id).REP_DEST + req.body.filename).catch(console.error);
+							if (req.body.meta)
+								mv(conf(req.query.id).REP_DEST + 'meta-' + req.body.absolutename + '.js', conf(req.query.id).REP_EVENT + 'meta-' + req.body.absolutename + '.js', err => {
+							if (err) console.log(err);
+							})
+						});
+					}
 					if (req.query.id === 'wd_unknow') exec(conf(req.query.id).EXEC)
 
 					const pathfile = conf(req.query.id).REP_DEST + '/' + req.body.filename;

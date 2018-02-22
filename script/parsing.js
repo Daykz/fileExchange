@@ -16,27 +16,20 @@ const checkFileAccessR = (path) => new Promise((resolve, reject) => {
 });
 
 
-// plus simple
-// getDir = path => path.lastIndexOf('/') < 0 ? './' : path.slice(0, path.lastIndexOf('/'));
-const getDir = (path) => {
-	const pos = path.lastIndexOf('/');
-	const dir = (pos == -1) ? './' : path.slice(0, pos);
-	
-	return dir;
-}
+const getDir = path => path.lastIndexOf('/') < 0 ? './' : path.slice(0, path.lastIndexOf('/'));
+
 
 const parsePath = (src, dest, op) => new Promise((resolve, reject) => {
 	if (op == 'download')
-		checkDirAccessW(getDir(dest)).then(() => resolve()).catch(err => reject(err));
+		checkDirAccessW(getDir(dest)).then(resolve).catch(reject);
 	else if (op == 'upload')
-		checkFileAccessR(src).then(res => resolve()).catch(err => reject(err));
+		checkFileAccessR(src).then(resolve).catch(reject);
 	else
 		reject('Parse failed.\nUsage: "node myScript.js src=<path> dest=<path> op=<upload||download>"');
 });
 
 const parsing = ({ src, dest, op }) => new Promise((resolve, reject) => {
-		parsePath(src, dest, op).then(res => resolve()).catch(err => reject(err));
-	// parsePath(src, dest, op).then(res => resolve()).catch(reject);
+		parsePath(src, dest, op).then(resolve).catch(reject);
 });
 
 
