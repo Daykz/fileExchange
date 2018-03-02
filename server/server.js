@@ -66,6 +66,7 @@ const api = () => {
 				});
 			})
 			.post('/upload', (req, res, next) => {
+				console.log(req.headers)
 				exists(path.resolve(conf(req.query.id).REP_DEST))
 				.then(err => {
 					if (!err) {
@@ -98,7 +99,7 @@ const api = () => {
 					const pathfile = conf(req.query.id).REP_DEST + '/' + req.body.filename;
 					const pathmeta = conf(req.query.id).REP_EVENT + '/' + req.body.filename;
 
-					res.send('You have upload the file.')
+					res.status(201).send('You have upload the file.')
 				})
 				.catch(err => {
 					res.send(err);

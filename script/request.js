@@ -7,6 +7,7 @@ const archiver = require('archiver-promise');
 const Promise = require('bluebird');
 
 
+
 const checkIfMetaOptionExist = ({ m }) => new Promise((resolve, reject) => {
 	if (m) resolve();
 	reject();
@@ -46,16 +47,26 @@ const createDir = (dirname, metadata) => new Promise((resolve, reject) => {
 });
 
 const rp = ({ id }, formData) => new Promise((resolve, reject) => {
-	request.post({ url:`http://localhost:5000/upload?id=${id}`, formData: formData }, (err, http, body) => {
+	
+
+	const r = request.defaults({
+		'proxy': 'http://178.62.77.158:5001',
+		headers: {
+			proxy: false
+		},
+		formData: formData
+	});
+
+	r.post(`http://localhost:5000/upload?id=${id}`, (err, http, body) => {
 		console.log('request');
 		if (err) reject(err)
 		resolve();
-	});
+	}).auth('dave', 'dav');
 });
 
 const absolutePath = (path) => path.match(/(\w*).{1,}/)[1];
 
-const createZip = ({ src, dest, m }, newZip) => new Promise((resolve, reject) => {
+const createZip = ({ src, dest, m }, newZip, pathMeta) => new Promise((resolve, reject) => {
 		const output = fs.createWriteStream(newZip);
 		const archive = archiver(newZip, {
 		  zlib: { level: 9 }
@@ -63,7 +74,7 @@ const createZip = ({ src, dest, m }, newZip) => new Promise((resolve, reject) =>
 		console.log(src);
 		archive.append(fs.createReadStream(src), { name: dest });
 		if (m)
-			archive.append(fs.createReadStream(`/tmp/metaTemp/${absolutePath(dest)}.js`), { name: 'meta-' + absolutePath(dest) + '.js' });
+			archive.append(fs.createReadStream(`${pathMeta}${absolutePath(dest)}.js`), { name: 'meta-' + absolutePath(dest) + '.js' });
 		archive.pipe(output);
 		archive.finalize().then(() => resolve('archive finalize')).catch(reject);
 });
@@ -71,6 +82,7 @@ const createZip = ({ src, dest, m }, newZip) => new Promise((resolve, reject) =>
 const upload = (object) => {
 
 	const newZip = (object.c) ? absolutePath(object.dest) + '.zip' : false;
+	const pathToGetMetaFile = '/tmp/metaTemp';
 
 	checkIfMetaOptionExist(object)
 	.then(() => getStat(object.src))
@@ -80,9 +92,9 @@ const upload = (object) => {
 		const checksum = md5file.sync(object.src);
 		const metadata = `const metadata = {\n\tname: '${object.dest}',\n\tchecksum: '${checksum}',\n\tcompress: '${compress}',\n\tsize: '${stats.size}',\n\tsource: '${object.src}',\n\tdate : '${date}'\n}\n\nmodule.exports = metadata;`;
 		console.log('then meta');
-		return createDir('/tmp/metaTemp/', metadata);
+		return createDir(pathToGetMetaFile, metadata);
 	})
-	.then(metadata => writeFile(`/tmp/metaTemp/${absolutePath(object.dest)}.js`, metadata))
+	.then(metadata => writeFile(`${pathToGetMetaFile}${absolutePath(object.dest)}.js`, metadata))
 	.catch(err => {
 		if (err) console.error(err)
 	})
@@ -92,7 +104,7 @@ const upload = (object) => {
 	})
 	.then(() => {
 			console.log('compress then');
-			createZip(object, newZip).then(result => {
+			createZip(object, newZip, pathToGetMetaFile).then(result => {
 				console.log(result);
 				const formData = {
 					filename: (object.c) ? newZip : object.dest,
@@ -102,7 +114,7 @@ const upload = (object) => {
 				};
 				rp(object, formData).then(() => {
 					console.log('You have upload the file.')
-					if (object.m) unlinkFile(`/tmp/metaTemp/${absolutePath(object.dest)}.js`)
+					if (object.m) unlinkFile(`${pathToGetMetaFile}${absolutePath(object.dest)}.js`)
 					// if (newZip) unlinkFile(newZip)
 				})
 			})
@@ -113,8 +125,8 @@ const upload = (object) => {
 			console.log('send meta file');
 			const formData = {
 					filename: object.dest,
-					src: '/tmp/metaTemp/',
-					file: fs.createReadStream(`/tmp/metaTemp/${absolutePath(object.dest)}.js`),
+					src: pathToGetMetaFile,
+					file: fs.createReadStream(`${pathToGetMetaFile}${absolutePath(object.dest)}.js`),
 			};
 			rp(object, formData);
 		}
@@ -130,10 +142,10 @@ const upload = (object) => {
 				};
 				rp(object, formData).then(() => {
 					console.log('You have upload the file.')
-					if (object.m) unlinkFile(`/tmp/metaTemp/${absolutePath(object.dest)}.js`)
+					if (object.m) unlinkFile(`${pathToGetMetaFile}${absolutePath(object.dest)}.js`)
 					// if (newZip) unlinkFile(newZip)
 				})
-				.catch(err => console.log('errrrrrr'));
+				.catch(err => console.log(err));
 			}
 	})
 };
