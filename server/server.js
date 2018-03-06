@@ -39,6 +39,7 @@ const exists = (path) => new Promise((resolve, reject) => {
 
 const uploadFile = (req, res) => new Promise((resolve, reject) => {
 	upload(req, res, err => {
+		console.log('reqfile = ', req.file)
 		if (err) reject(err)
 		resolve();
 	})

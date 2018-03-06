@@ -50,7 +50,7 @@ const rp = ({ id }, formData) => new Promise((resolve, reject) => {
 	
 
 	const r = request.defaults({
-		'proxy': 'http://178.62.77.158:5001',
+		'proxy': 'http://localhost:9000',
 		headers: {
 			proxy: false
 		},
