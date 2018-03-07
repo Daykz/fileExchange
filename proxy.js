@@ -1,10 +1,12 @@
 const http = require('http');
-const request = require('request')
-var server = http.createServer(function(req, res, next) {
+const request = require('request');
+
+
+
+const proxy = http.createServer(function(req, res) {
   req.headers.proxy = true;
-	request.post(req);
-	res.end();
+  req.pipe(request(req.url)).pipe(res);
 });
 
-server.listen(9000);
+proxy.listen(9000);
 console.log('Magic happens on port 9000');

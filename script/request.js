@@ -5,6 +5,7 @@ const mkdirp = require('mkdirp');
 const md5file = require('md5-file');
 const archiver = require('archiver-promise');
 const Promise = require('bluebird');
+const jwt = require('jsonwebtoken');
 
 
 
@@ -49,10 +50,13 @@ const createDir = (dirname, metadata) => new Promise((resolve, reject) => {
 const rp = ({ id }, formData) => new Promise((resolve, reject) => {
 	
 
+	const token = jwt.sign({ foo: 'bar' }, 'shhhhh');
+	console.log(token)
 	const r = request.defaults({
-		'proxy': 'http://localhost:9000',
+		proxy: 'http://localhost:9000',
 		headers: {
-			proxy: false
+			proxy: false,
+			token: token
 		},
 		formData: formData
 	});
