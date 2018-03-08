@@ -10,7 +10,8 @@ const exec = require('child_process').exec;
 const md5file = require('md5-file');
 const decompress = require('decompress');
 const mv = require('mv');
-
+const cluster = require('cluster');
+const numCPUs = require('os').cpus().length;
 
 const storage	= multer.diskStorage({
 	destination: (req, file, cb) => (req.body.src) ? cb(null, conf(req.query.id).REP_EVENT) : cb(null, conf(req.query.id).REP_DEST),
@@ -108,11 +109,24 @@ const api = () => {
 	return sousapp;
 }
 
+if (cluster.isMaster) {
+  console.log(`Master ${process.pid} is running`);
 
+  // Fork workers.
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
+  }
 
-app.use(bodyParser.urlencoded({ extended: true }))
-   .use(bodyParser.json())
-   .use('/', api());
+  cluster.on('exit', (worker, code, signal) => {
+    console.log(`worker ${worker.process.pid} died`);
+  });
+} else {
+	  console.log(`Worker ${process.pid} started`);
+	  
+		app.use(bodyParser.urlencoded({ extended: true }))
+		   .use(bodyParser.json())
+		   .use('/', api());
 
-app.listen(port);
-console.log('Magic happens on port ' + port)
+		app.listen(port);
+		console.log('Magic happens on port ' + port);
+}

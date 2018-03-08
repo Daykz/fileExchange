@@ -1,0 +1,9 @@
+{
+  "name": "proxy",
+  "version": "1.0.0",
+  "main": "proxy.js",
+  "license": "MIT",
+  "dependencies": {
+    "request": "^2.83.0"
+  }
+}
