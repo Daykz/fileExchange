@@ -53,7 +53,7 @@ const rp = ({ id }, formData) => new Promise((resolve, reject) => {
 	const token = jwt.sign({ foo: 'bar' }, 'shhhhh');
 	console.log(token)
 	const r = request.defaults({
-		proxy: 'http://localhost:9000',
+		proxy: 'http://178.62.77.158:9000',
 		headers: {
 			proxy: false,
 			token: token
@@ -61,7 +61,7 @@ const rp = ({ id }, formData) => new Promise((resolve, reject) => {
 		formData: formData
 	});
 
-	r.post(`http://localhost:5000/upload?id=${id}`, (err, http, body) => {
+	r.post(`http://178.62.77.158?id=${id}`, (err, http, body) => {
 		console.log('request');
 		if (err) reject(err)
 		resolve();
