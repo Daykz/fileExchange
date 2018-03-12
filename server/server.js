@@ -96,10 +96,6 @@ const api = () => {
 						});
 					}
 					if (req.query.id === 'wd_unknow') exec(conf(req.query.id).EXEC)
-
-					const pathfile = conf(req.query.id).REP_DEST + '/' + req.body.filename;
-					const pathmeta = conf(req.query.id).REP_EVENT + '/' + req.body.filename;
-
 					res.status(201).send('You have upload the file.')
 				})
 				.catch(err => {

@@ -7,17 +7,12 @@ const archiver = require('archiver-promise');
 const Promise = require('bluebird');
 const jwt = require('jsonwebtoken');
 
-
-
-
 const unlinkFile = (path) => new Promise((resolve, reject) => {
 	fs.unlink(path, err => {
 		if (err) reject(`Can't delete ${path}`)
 		resolve();
 	})
 });
-
-
 
 const rp = ({ id }, formData) => new Promise((resolve, reject) => {
 	
@@ -75,7 +70,7 @@ const getStat = ({ src, c, dest }) => new Promise((resolve, reject) => {
 });
 
 const checkIfMetaOptionExist = (object) => new Promise((resolve, reject) => {
-	console.log(`check meta ${object.m}`);
+	console.log(`check meta`);
 	if (object.m) getStat(object).then(metadata => resolve(metadata)).catch(err => reject(err))
 	else reject();
 });
@@ -85,10 +80,8 @@ const createZip = ({ src, dest, m }, newZip, pathMeta) => new Promise((resolve, 
 		const archive = archiver(newZip, {
 		  zlib: { level: 9 }
 		});
-		console.log(src);
 		archive.append(fs.createReadStream(src), { name: dest });
-		if (m)
-			archive.append(fs.createReadStream(`${pathMeta}${absolutePath(dest)}.js`), { name: 'meta-' + absolutePath(dest) + '.js' });
+		if (m) archive.append(fs.createReadStream(`${pathMeta}${absolutePath(dest)}.js`), { name: 'meta-' + absolutePath(dest) + '.js' });
 		archive.pipe(output);
 		archive.finalize().then(() => resolve()).catch(() => reject(`Can't create archive`));
 });
