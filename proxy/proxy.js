@@ -2,7 +2,7 @@ const http = require('http');
 const request = require('request');
 
 
-
+//                               FUNCTION ??????? =>
 const proxy = http.createServer(function(req, res) {
   req.headers.proxy = true;
   req.pipe(request(req.url)).pipe(res);
