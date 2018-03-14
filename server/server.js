@@ -4,8 +4,6 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const multer       = require('multer');
 const fs 		= require('fs');
-let conf = require('./conf');
-// let toujours après les const !
 const mkdirp = require('mkdirp');
 const exec = require('child_process').exec;
 const md5file = require('md5-file');
@@ -13,15 +11,13 @@ const decompress = require('decompress');
 const mv = require('mv');
 const cluster = require('cluster');
 const numCPUs = require('os').cpus().length;
-
 const storage	= multer.diskStorage({
 	destination: (req, file, cb) => (req.body.src) ? cb(null, conf(req.query.id).REP_EVENT) : cb(null, conf(req.query.id).REP_DEST),
 	filename: (req, file, cb) => cb(null, req.body.filename),
 });
-
 const upload		= multer({storage: storage}).any('file');
-
 const port 		= process.env.PORT || 5000;
+let conf = require('./conf');
 
 const createDir = (path) => new Promise((resolve, reject) => {
 	mkdirp(path, err => {
