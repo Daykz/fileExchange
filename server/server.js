@@ -5,6 +5,7 @@ const path = require('path');
 const multer       = require('multer');
 const fs 		= require('fs');
 let conf = require('./conf');
+// let toujours après les const !
 const mkdirp = require('mkdirp');
 const exec = require('child_process').exec;
 const md5file = require('md5-file');
